@@ -1,27 +1,40 @@
 class PagesController < ApplicationController
+
+
   def index
   end
 
   def home
-  	@posts = Post.all
+    following = Array.new
+    for @f in current_user.following do
+      following.push(@f.id)  
+    end
+
+  	@posts = Post.where("user_id IN (?)", following)
     @new_post = Post.new
   end
 
+  # back-end code for pages/profile
   def profile
-  	
   	# grab the username from the URL as id:
   	if (User.find_by_username(params[:id]))
   		@username = params[:id]
   	else
+      # redirect to 404 (root for now)
   		redirect_to root_path, notice: "User not found"
   	end
 
-  	@posts = Post.all.where("user_id = ?", User.find_by_username(params[:id]).id)
+  	@posts = Post.all.where("user_id = ?", User.find_by_username(params[:id]))
   	@new_post = Post.new
+    @users_to_follow = User.all_except(current_user)
   end
 
 
   def explore
   	@posts = Post.all
+    @new_post = Post.new
+    @users_to_follow = User.all_except(current_user).last(5)
   end
+
+
 end
